@@ -1,0 +1,729 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<meta name="theme-color" content="#2f6168">
+<title>Neles Bibliothek</title>
+<!--HINTERGRUND-->
+<style>
+  :root {
+    color-scheme: light;
+    --papier: #f8f0dd;
+    --papier-hell: #fffaf0;
+    --papier-dunkel: #efe3c8;
+    --tinte: #3b2f25;
+    --leise: #7d6c58;
+    --linie: #ddd0b3;
+    --petrol: #2f6168;
+    --holz: #8a5a35;
+    --stern: #b9811f;
+    --fehler: #a7473a;
+    --serif: "Iowan Old Style", "Palatino Linotype", Palatino, "Book Antiqua", Georgia, serif;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; background: #5a4a3a; color: var(--tinte);
+    font-family: var(--serif); font-size: 1.02rem; line-height: 1.5;
+  }
+  /* Hintergrundbild: Datei "hintergrund.jpg" neben index.html. Fehlt sie, bleibt die Holzfarbe. */
+  .hintergrund {
+    position: fixed; inset: 0; z-index: -1;
+    background-image: url("hintergrund.jpg");
+    background-size: cover; background-position: center; background-repeat: no-repeat;
+  }
+  .seite { max-width: 1020px; margin: 0 auto; padding: 36px 16px 56px; }
+
+  .blatt {
+    background: var(--papier);
+    background-image: linear-gradient(180deg, rgba(255,255,255,.35), rgba(255,255,255,0) 160px);
+    border-radius: 4px;
+    padding: 44px 52px 36px;
+    box-shadow: 0 1px 2px rgba(40,25,10,.25), 0 14px 40px rgba(40,25,10,.35);
+  }
+  header { text-align: center; padding-bottom: 22px; margin-bottom: 26px; border-bottom: 3px double var(--holz); }
+  h1 { font-size: clamp(2rem, 5vw, 2.9rem); font-weight: 600; margin: 0 0 6px; letter-spacing: .01em; color: var(--petrol); }
+  .unter { margin: 0; color: var(--leise); font-style: italic; }
+
+  input[type=search] {
+    width: 100%; font: inherit; color: var(--tinte); background: var(--papier-hell);
+    border: 1px solid var(--linie); border-bottom: 2px solid var(--holz);
+    border-radius: 3px; padding: 10px 14px; margin-bottom: 32px;
+  }
+  input[type=search]::placeholder { color: var(--leise); font-style: italic; }
+  :focus-visible { outline: 3px solid var(--petrol); outline-offset: 2px; }
+
+  section { margin-bottom: 34px; }
+  h2 { font-size: 1.45rem; font-weight: 600; margin: 0 0 12px; color: var(--petrol); }
+  .kopfzeile { display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
+  .hinweis { color: var(--leise); font-size: .88rem; font-style: italic; }
+
+  .wunsch {
+    background: #fbf3d2; border: 1px dashed #c4a965; border-radius: 3px;
+    padding: 6px 4px; box-shadow: 0 1px 0 rgba(0,0,0,.06);
+  }
+  .wunsch ul { list-style: none; margin: 0; padding: 0; }
+  .wunsch li { padding: 8px 56px 8px 40px; position: relative; }
+  .wunsch li::before { content: "★"; position: absolute; left: 16px; top: 8px; color: var(--stern); }
+  .wunsch .titel { font-weight: 700; }
+  .wunsch .rest { color: var(--leise); }
+  .leer { color: var(--leise); font-style: italic; padding: 12px 18px; margin: 0; }
+
+  .tabelle { overflow-x: auto; }
+  table { border-collapse: collapse; width: 100%; min-width: 600px; }
+  th, td { text-align: left; padding: 9px 12px; vertical-align: top; }
+  thead th { padding: 0; border-bottom: 2px solid var(--petrol); white-space: nowrap; }
+  thead button {
+    font: inherit; font-weight: 700; color: var(--petrol); background: none; border: 0;
+    cursor: pointer; padding: 8px 12px; width: 100%; text-align: left;
+  }
+  thead button:hover { background: var(--papier-dunkel); }
+  tbody td { border-bottom: 1px solid var(--linie); }
+  tbody tr:hover td { background: rgba(255,255,255,.45); }
+  td.titel { font-weight: 700; }
+  .chip {
+    display: inline-block; padding: 0 10px; border-radius: 999px; font-size: .85rem; line-height: 1.5;
+    border: 1px solid var(--farbe); color: var(--farbe);
+    background: color-mix(in srgb, var(--farbe) 10%, var(--papier-hell));
+  }
+  .sterne { color: var(--stern); letter-spacing: 1px; white-space: nowrap; }
+  footer { margin-top: 28px; padding-top: 14px; border-top: 1px solid var(--linie); text-align: center; color: var(--leise); font-size: .82rem; font-style: italic; }
+  footer:empty { display: none; }
+
+  [hidden] { display: none !important; }
+  .titelgruppe { display: flex; align-items: baseline; flex-wrap: wrap; gap: 4px 16px; }
+  .neu {
+    font: inherit; font-size: .9rem; color: var(--papier-hell); background: var(--petrol);
+    border: 0; border-radius: 3px; padding: 6px 14px; cursor: pointer;
+  }
+  .neu:hover { filter: brightness(1.18); }
+  .neu:disabled { opacity: .55; cursor: wait; }
+  .sekundaer { color: var(--petrol); background: transparent; border: 1px solid var(--petrol); }
+  .gefahr { background: transparent; color: var(--fehler); border: 1px solid var(--fehler); }
+  a.neu { display: inline-block; text-decoration: none; }
+  .werkzeug { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin: -8px 0 14px; }
+  .sortmobil { display: none; }
+
+  dialog {
+    border: 0; border-radius: 4px; background: var(--papier); color: var(--tinte);
+    padding: 26px 30px 22px; width: min(560px, 94vw); max-height: 94vh;
+    box-shadow: 0 20px 60px rgba(30,20,10,.5); font-family: var(--serif);
+  }
+  dialog::backdrop { background: rgba(30,20,10,.55); }
+  dialog h2 { margin-bottom: 14px; }
+  dialog label { display: block; margin-bottom: 12px; font-weight: 700; font-size: .92rem; color: var(--petrol); }
+  dialog input:not([type=checkbox]):not([type=file]), dialog select, dialog textarea {
+    display: block; width: 100%; margin-top: 4px; font: inherit; font-weight: 400; color: var(--tinte);
+    background: var(--papier-hell); border: 1px solid var(--linie); border-bottom: 2px solid var(--holz);
+    border-radius: 3px; padding: 8px 10px;
+  }
+  dialog label.merken { font-weight: 400; color: var(--tinte); }
+  .zeile2 { display: grid; grid-template-columns: 1fr 1fr; gap: 0 14px; }
+  .knoepfe { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 10px; margin-top: 8px; }
+  .knoepfe .neu { padding: 9px 18px; font-size: .95rem; }
+  .abstand { flex: 1; }
+  .fehler { color: var(--fehler); margin: 4px 0 0; min-height: 1.2em; font-size: .9rem; }
+  dialog p.erklaerung { margin: 0 0 14px; font-size: .95rem; color: var(--leise); }
+  #meldung {
+    position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%);
+    background: var(--petrol); color: var(--papier-hell); padding: 10px 20px; border-radius: 4px;
+    opacity: 0; pointer-events: none; transition: opacity .2s; max-width: 92vw; text-align: center; z-index: 10;
+  }
+  #meldung.an { opacity: 1; }
+
+  .stift {
+    font: inherit; font-size: 1.1rem; line-height: 1; color: var(--petrol); background: none;
+    border: 0; border-radius: 3px; padding: 4px 8px; cursor: pointer;
+  }
+  .stift:hover { background: var(--papier-dunkel); }
+  .wunsch .stift { position: absolute; right: 14px; top: 6px; }
+  td:last-child .stift { float: right; }
+
+  /* Handy: Tabelle wird zu Karten */
+  @media (max-width: 640px) {
+    .seite { padding: 10px 8px 32px; }
+    .blatt { padding: 24px 14px 22px; }
+    .werkzeug { justify-content: center; margin-top: 0; }
+    .sortmobil { display: flex; gap: 8px; margin: -14px 0 14px; }
+    .sortmobil select {
+      flex: 1; font: inherit; color: var(--tinte); background: var(--papier-hell);
+      border: 1px solid var(--linie); border-radius: 3px; padding: 7px 8px;
+    }
+    .hinweis { display: none; }
+    .tabelle { overflow: visible; }
+    table, thead, tbody, tr, td { display: block; width: 100%; min-width: 0; }
+    thead { display: none; }
+    tbody tr {
+      position: relative; background: var(--papier-hell); border: 1px solid var(--linie);
+      border-radius: 4px; padding: 8px 12px; margin-bottom: 12px;
+    }
+    tbody td, tbody tr:hover td { border: 0; padding: 2px 0; background: none; }
+    td:empty { display: none; }
+    td::before { content: attr(data-label) ": "; color: var(--leise); font-size: .8rem; }
+    td.titel { padding-right: 40px; font-size: 1.08rem; }
+    td.titel::before, td.aktion::before { content: none; }
+    td.aktion { position: absolute; top: 4px; right: 4px; padding: 0; width: auto; }
+    .stift { padding: 8px 12px; }
+    dialog { padding: 20px 16px 16px; }
+  }
+</style>
+</head>
+<body>
+<div class="hintergrund"></div>
+<div class="seite">
+ <div class="blatt">
+  <header>
+    <h1>Neles Bibliothek</h1>
+    <p class="unter" id="zusammenfassung"></p>
+  </header>
+  <div class="werkzeug" id="werkzeug">
+    <button class="neu sekundaer" id="aktualisieren" type="button">↻ Aktualisieren</button>
+    <button class="neu sekundaer" id="excel-import" type="button" hidden>Aus Excel importieren</button>
+    <a class="neu sekundaer" id="excel-export" href="/buecherliste_export.xlsx" download hidden>Als Excel herunterladen</a>
+    <button class="neu sekundaer" id="abmelden" type="button" hidden>Abmelden</button>
+  </div>
+  <input type="search" id="suche" placeholder="Suchen in Wunschliste und Büchern" aria-label="Suchen">
+
+  <section>
+    <div class="titelgruppe">
+      <h2 id="wunsch-titel">Wunschliste</h2>
+      <button class="neu" id="neu-wunsch" type="button" hidden>+ Wunschbuch hinzufügen</button>
+    </div>
+    <div class="wunsch" id="wunschliste"></div>
+  </section>
+
+  <section>
+    <div class="kopfzeile">
+      <div class="titelgruppe">
+        <h2 id="buch-titel">Bücher</h2>
+        <button class="neu" id="neu-buch" type="button" hidden>+ Buch hinzufügen</button>
+      </div>
+      <span class="hinweis">Klicke auf eine Spaltenüberschrift, um zu sortieren.</span>
+    </div>
+    <div class="sortmobil">
+      <select id="sort-feld" aria-label="Sortieren nach"></select>
+      <button class="neu sekundaer" id="sort-richtung" type="button" aria-label="Sortierrichtung umkehren">▲</button>
+    </div>
+    <div class="tabelle" id="tabelle"></div>
+  </section>
+  <footer id="stand"></footer>
+ </div>
+</div>
+
+<dialog id="login-dialog">
+  <form id="login-form">
+    <h2>Anmelden</h2>
+    <p class="erklaerung">Bitte den Zugangscode eingeben.</p>
+    <label>Zugangscode
+      <input type="password" id="code-feld" autocomplete="current-password" required>
+    </label>
+    <label class="merken"><input type="checkbox" id="merken" checked> Auf diesem Gerät merken</label>
+    <p class="fehler" id="login-fehler" role="alert"></p>
+    <div class="knoepfe">
+      <button type="submit" class="neu">Anmelden</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="dialog">
+  <form id="formular" autocomplete="off">
+    <h2 id="dialog-titel"></h2>
+    <label>Titel *<input name="titel" required maxlength="300"></label>
+    <label>Autor*in<input name="autor" maxlength="300" list="l-autoren"></label>
+    <label>Verlag<input name="verlag" maxlength="300" list="l-verlage"></label>
+    <label>Kategorie<input name="kategorie" maxlength="300" list="l-kategorien"></label>
+    <label data-nur="buch">Schule (Thema/Fach)<input name="schule" maxlength="300" list="l-schulen"></label>
+    <div class="zeile2" data-nur="buch">
+      <label>Erscheinungsjahr<input name="jahr" type="number" inputmode="numeric" min="1" max="2100"></label>
+      <label>Bewertung
+        <select name="bewertung">
+          <option value="">keine</option>
+          <option value="1">★</option><option value="2">★★</option><option value="3">★★★</option>
+          <option value="4">★★★★</option><option value="5">★★★★★</option>
+        </select>
+      </label>
+    </div>
+    <label>Notiz<textarea name="notiz" rows="2" maxlength="1000"></textarea></label>
+    <datalist id="l-autoren"></datalist><datalist id="l-verlage"></datalist>
+    <datalist id="l-kategorien"></datalist><datalist id="l-schulen"></datalist>
+    <p class="fehler" id="fehler" role="alert"></p>
+    <div class="knoepfe">
+      <button type="button" class="neu gefahr" id="loeschen" hidden>Löschen</button>
+      <button type="button" class="neu sekundaer" id="uebernehmen" hidden>Ins Bücherregal übernehmen</button>
+      <span class="abstand"></span>
+      <button type="button" class="neu sekundaer" id="abbrechen">Schließen</button>
+      <button type="submit" class="neu sekundaer" id="speichern-weiter">Speichern &amp; nächstes</button>
+      <button type="submit" class="neu" id="speichern">Speichern</button>
+    </div>
+  </form>
+</dialog>
+
+<dialog id="import-dialog">
+  <h2>Aus Excel importieren</h2>
+  <p class="erklaerung">Wähle eine .xlsx-Datei. Sie braucht eine Überschriftenzeile mit „Titel“; Autor*in, Verlag,
+  Kategorie, Schule, Jahr, Bewertung und Notizen werden automatisch zugeordnet. Bücher, die schon in der Liste
+  stehen, werden übersprungen.</p>
+  <input type="file" id="datei" accept=".xlsx">
+  <p class="fehler" id="import-fehler" role="alert"></p>
+  <div class="knoepfe">
+    <button type="button" class="neu sekundaer" id="import-abbrechen">Schließen</button>
+    <button type="button" class="neu" id="import-start">Importieren</button>
+  </div>
+</dialog>
+<div id="meldung" role="status" aria-live="polite"></div>
+
+<script>
+/* ====== EINSTELLUNG: URL der Google-Script-Web-App (endet auf /exec) ====== */
+const API_URL = "https://script.google.com/macros/s/AKfycbyZqb5cREB_FSsr7v6a-CVdHLoj38dOvlSm4kmBDMmsc_asKTSZSDi-PQfa_vdw_eeC/exec";
+
+/* Werden vom Python-Skript gesetzt: lokaler Modus bzw. reine Ansicht (buecherliste.html). */
+const LOKAL = /*LOKAL*/null;
+const SNAPSHOT = /*SNAPSHOT*/null;
+
+let EDIT = false;
+let BUECHER = [];
+let WUENSCHE = [];
+let code = "";
+
+const SPALTEN = [
+  { k: "titel", n: "Titel" },
+  { k: "autor", n: "Autor*in" },
+  { k: "verlag", n: "Verlag" },
+  { k: "kategorie", n: "Kategorie" },
+  { k: "schule", n: "Schule" },
+  { k: "jahr", n: "Jahr", num: true },
+  { k: "bewertung", n: "Bewertung", num: true },
+  { k: "notiz", n: "Notiz" },
+];
+const leer = v => v === "" || v === null || v === undefined;
+let sortKey = "titel", sortAuf = true;
+
+const el = id => document.getElementById(id);
+const de = (x, y) => String(x).localeCompare(String(y), "de", { sensitivity: "base", numeric: true });
+
+/* Browser-Speicher kann gesperrt sein (z. B. privater Modus) -> nie abstürzen */
+const ls = {
+  get(k) { try { return localStorage.getItem(k) || ""; } catch (e) { return ""; } },
+  set(k, v) { try { localStorage.setItem(k, v); } catch (e) {} },
+  del(k) { try { localStorage.removeItem(k); } catch (e) {} },
+};
+
+function node(tag, klasse, text) {
+  const e = document.createElement(tag);
+  if (klasse) e.className = klasse;
+  if (text !== undefined) e.textContent = text;
+  return e;
+}
+
+function farbe(text) {
+  let h = 0;
+  for (const c of text) h = (h * 31 + c.charCodeAt(0)) % 360;
+  return `hsl(${h}, 38%, 36%)`;
+}
+
+/* ------------------------------------------------------------ Server ---- */
+async function api(action, nutzlast) {
+  let antwort;
+  if (LOKAL) {
+    antwort = await fetch("/api", {
+      method: "POST",
+      headers: { "X-Token": LOKAL.token, "Content-Type": "application/json" },
+      body: JSON.stringify({ action, ...nutzlast }),
+    });
+  } else {
+    if (API_URL.includes("DEINE_SCRIPT_ID")) throw new Error("In index.html fehlt noch die API_URL (Google-Script-Adresse).");
+    // Kein eigener Content-Type: so bleibt es eine „einfache“ Anfrage ohne CORS-Vorabprüfung.
+    antwort = await fetch(API_URL, { method: "POST", body: JSON.stringify({ code, action, ...nutzlast }) });
+  }
+  const j = await antwort.json().catch(() => null);
+  if (!j) throw new Error("Unerwartete Antwort vom Server.");
+  if (!j.ok) {
+    if (j.auth && !LOKAL) { code = ""; ls.del("bib_code"); }
+    const e = new Error(j.fehler || "Fehler.");
+    e.doppelt = !!j.doppelt;
+    e.auth = !!j.auth;
+    throw e;
+  }
+  return j;
+}
+
+function fehlertext(err) {
+  if (err instanceof TypeError)
+    return LOKAL ? "Speichern nicht möglich. Läuft das Python-Skript noch?"
+                 : "Keine Verbindung zum Server. Bist du online?";
+  return err.message;
+}
+
+function uebernehme(j) {
+  BUECHER = j.buecher;
+  WUENSCHE = j.wunschliste;
+  EDIT = j.rolle === "edit";
+  if (!LOKAL) ls.set("bib_cache", JSON.stringify({ buecher: BUECHER, wunschliste: WUENSCHE }));
+  modusSetzen();
+  aktualisieren();
+}
+
+async function laden() {
+  if (!BUECHER.length && !WUENSCHE.length) el("zusammenfassung").textContent = "Lade …";
+  el("aktualisieren").disabled = true;
+  try {
+    uebernehme(await api("laden"));
+  } catch (err) {
+    if (err.auth) loginOeffnen(err.message); else meldung(fehlertext(err));
+    aktualisieren();
+  } finally {
+    el("aktualisieren").disabled = false;
+  }
+}
+
+/* --------------------------------------------------------- Darstellung -- */
+function passt(b, q) {
+  if (!q) return true;
+  return [b.titel, b.autor, b.verlag, b.kategorie, b.schule, b.notiz].join(" ").toLowerCase().includes(q);
+}
+
+function sortieren(liste) {
+  const spalte = SPALTEN.find(c => c.k === sortKey);
+  return [...liste].sort((a, b) => {
+    const x = a[sortKey], y = b[sortKey];
+    if (leer(x) && leer(y)) return de(a.titel, b.titel);
+    if (leer(x)) return 1;
+    if (leer(y)) return -1;
+    const v = spalte.num ? x - y : de(x, y);
+    return (sortAuf ? v : -v) || de(a.titel, b.titel);
+  });
+}
+
+function zelle(b, c) {
+  const td = node("td", c.k === "titel" ? "titel" : "");
+  td.dataset.label = c.n;
+  const v = b[c.k];
+  if (leer(v)) return td;
+  if (c.k === "kategorie") {
+    const chip = node("span", "chip", v);
+    chip.style.setProperty("--farbe", farbe(v));
+    td.append(chip);
+  } else if (c.k === "bewertung") {
+    const s = node("span", "sterne", "★".repeat(v) + "☆".repeat(5 - v));
+    s.title = v + " von 5";
+    td.append(s);
+  } else {
+    td.textContent = v;
+  }
+  return td;
+}
+
+function zeigeWunschliste(q) {
+  const liste = WUENSCHE.filter(b => passt(b, q)).sort((a, b) => de(a.titel, b.titel));
+  el("wunsch-titel").textContent = "Wunschliste (" + liste.length + ")";
+  const box = el("wunschliste");
+  box.replaceChildren();
+  if (!liste.length) {
+    box.append(node("p", "leer", WUENSCHE.length ? "Keine Treffer." : "Noch keine Wunschbücher eingetragen."));
+    return;
+  }
+  const ul = node("ul");
+  for (const b of liste) {
+    const li = node("li");
+    li.append(node("span", "titel", b.titel));
+    const rest = [b.autor, b.verlag, b.kategorie].filter(x => !leer(x) && x !== "Unbekannt").join(", ");
+    if (rest) li.append(node("span", "rest", " – " + rest));
+    if (b.notiz) li.append(node("div", "rest", b.notiz));
+    if (EDIT) li.append(stift("wunschliste", b));
+    ul.append(li);
+  }
+  box.append(ul);
+}
+
+function zeigeTabelle(q) {
+  const sichtbar = SPALTEN.filter(c => c.k === "titel" || BUECHER.some(b => !leer(b[c.k])));
+  const liste = sortieren(BUECHER.filter(b => passt(b, q)));
+  el("buch-titel").textContent = liste.length === BUECHER.length
+    ? "Bücher (" + liste.length + ")"
+    : "Bücher (" + liste.length + " von " + BUECHER.length + ")";
+
+  const sf = el("sort-feld");
+  sf.replaceChildren(...sichtbar.map(c => new Option(c.n, c.k)));
+  sf.value = sortKey;
+  el("sort-richtung").textContent = sortAuf ? "▲" : "▼";
+
+  const box = el("tabelle");
+  box.replaceChildren();
+  if (!liste.length) {
+    box.append(node("p", "leer", BUECHER.length ? "Keine Treffer." : "Noch keine Bücher eingetragen."));
+    return;
+  }
+  const table = node("table");
+  const tr = node("tr");
+  for (const c of sichtbar) {
+    const th = node("th");
+    th.setAttribute("aria-sort", c.k === sortKey ? (sortAuf ? "ascending" : "descending") : "none");
+    const btn = node("button", "", c.n + (c.k === sortKey ? (sortAuf ? " ▲" : " ▼") : ""));
+    btn.type = "button";
+    btn.addEventListener("click", () => {
+      if (sortKey === c.k) sortAuf = !sortAuf; else { sortKey = c.k; sortAuf = true; }
+      aktualisieren();
+    });
+    th.append(btn);
+    tr.append(th);
+  }
+  if (EDIT) tr.append(node("th"));
+  const thead = node("thead");
+  thead.append(tr);
+  const tbody = node("tbody");
+  for (const b of liste) {
+    const row = node("tr");
+    sichtbar.forEach(c => row.append(zelle(b, c)));
+    if (EDIT) { const td = node("td", "aktion"); td.append(stift("buecher", b)); row.append(td); }
+    tbody.append(row);
+  }
+  table.append(thead, tbody);
+  box.append(table);
+}
+
+function aktualisieren() {
+  el("zusammenfassung").textContent = (code || LOKAL || SNAPSHOT || BUECHER.length || WUENSCHE.length)
+    ? BUECHER.length + " Bücher im Regal, " + WUENSCHE.length + " auf der Wunschliste"
+    : "Nicht angemeldet";
+  const q = el("suche").value.trim().toLowerCase();
+  zeigeWunschliste(q);
+  zeigeTabelle(q);
+}
+
+function modusSetzen() {
+  const ansicht = !!SNAPSHOT;
+  el("werkzeug").hidden = ansicht;
+  el("neu-buch").hidden = el("neu-wunsch").hidden = !EDIT;
+  el("excel-import").hidden = el("excel-export").hidden = !(LOKAL && EDIT);
+  el("abmelden").hidden = !!LOKAL || ansicht;
+}
+
+el("suche").addEventListener("input", aktualisieren);
+el("sort-feld").addEventListener("change", e => { sortKey = e.target.value; sortAuf = true; aktualisieren(); });
+el("sort-richtung").addEventListener("click", () => { sortAuf = !sortAuf; aktualisieren(); });
+
+/* ------------------------------------------------------------ Anmeldung - */
+const loginDlg = el("login-dialog");
+
+function loginOeffnen(text) {
+  el("login-fehler").textContent = text || "";
+  el("code-feld").value = "";
+  if (!loginDlg.open) loginDlg.showModal();
+}
+
+el("login-form").addEventListener("submit", async e => {
+  e.preventDefault();
+  code = el("code-feld").value.trim();
+  el("login-fehler").textContent = "";
+  try {
+    const j = await api("laden");
+    if (el("merken").checked) ls.set("bib_code", code);
+    uebernehme(j);
+    loginDlg.close();
+  } catch (err) {
+    el("login-fehler").textContent = fehlertext(err);
+  }
+});
+
+el("abmelden").addEventListener("click", () => {
+  code = "";
+  ls.del("bib_code");
+  ls.del("bib_cache");
+  BUECHER = []; WUENSCHE = []; EDIT = false;
+  modusSetzen();
+  aktualisieren();
+  loginOeffnen();
+});
+
+el("aktualisieren").addEventListener("click", () => {
+  if (!LOKAL && !code) loginOeffnen(); else laden();
+});
+
+/* ------------------------------------------------------------ Bearbeiten - */
+const dlg = el("dialog"), form = el("formular");
+let modus = "neu", liste = "buecher", aktuell = null, toastTimer;
+
+function meldung(text) {
+  const m = el("meldung");
+  m.textContent = text;
+  m.classList.add("an");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => m.classList.remove("an"), 4500);
+}
+
+function stift(art, b) {
+  const k = node("button", "stift", "✎");
+  k.type = "button";
+  k.title = "Bearbeiten";
+  k.setAttribute("aria-label", "Bearbeiten: " + b.titel);
+  k.addEventListener("click", () => oeffnen(art, b));
+  return k;
+}
+
+async function senden(action, nutzlast, mitDuplikatfrage) {
+  try {
+    return await api(action, nutzlast);
+  } catch (err) {
+    if (err.doppelt && mitDuplikatfrage) {
+      if (!confirm("Dieses Buch steht schon in der Liste. Trotzdem hinzufügen?")) return null;
+      return await api(action, { ...nutzlast, erzwingen: true });
+    }
+    throw err;
+  }
+}
+
+function vorschlaege() {
+  const alle = [...BUECHER, ...WUENSCHE];
+  const fuelle = (id, key) => {
+    const werte = [...new Set(alle.map(b => b[key]).filter(v => !leer(v) && v !== "Unbekannt"))].sort(de);
+    el(id).replaceChildren(...werte.map(v => new Option(v)));
+  };
+  fuelle("l-autoren", "autor"); fuelle("l-verlage", "verlag");
+  fuelle("l-kategorien", "kategorie"); fuelle("l-schulen", "schule");
+}
+
+function dialogEinrichten() {
+  const istBuch = liste === "buecher";
+  form.querySelectorAll("[data-nur=buch]").forEach(x => { x.hidden = !istBuch; });
+  el("dialog-titel").textContent = {
+    neu: istBuch ? "Buch hinzufügen" : "Wunschbuch hinzufügen",
+    aendern: istBuch ? "Buch bearbeiten" : "Wunschbuch bearbeiten",
+    uebernehmen: "Ins Bücherregal übernehmen",
+  }[modus];
+  el("loeschen").hidden = modus !== "aendern";
+  el("uebernehmen").hidden = !(modus === "aendern" && liste === "wunschliste");
+  el("speichern-weiter").hidden = modus !== "neu";
+  el("fehler").textContent = "";
+}
+
+function oeffnen(art, eintrag) {
+  liste = art;
+  aktuell = eintrag || null;
+  modus = eintrag ? "aendern" : "neu";
+  form.reset();
+  if (eintrag) {
+    for (const [k, v] of Object.entries(eintrag)) {
+      const feld = form.elements[k];
+      if (feld && !leer(v)) feld.value = v;
+    }
+  }
+  dialogEinrichten();
+  vorschlaege();
+  dlg.showModal();
+  form.elements.titel.focus();
+}
+
+function sperren(an) {
+  dlg.querySelectorAll("button").forEach(b => { b.disabled = an; });
+}
+
+el("neu-buch").addEventListener("click", () => oeffnen("buecher"));
+el("neu-wunsch").addEventListener("click", () => oeffnen("wunschliste"));
+el("abbrechen").addEventListener("click", () => dlg.close());
+
+el("uebernehmen").addEventListener("click", () => {
+  modus = "uebernehmen";
+  liste = "buecher";
+  dialogEinrichten();
+  form.elements.schule.focus();
+});
+
+el("loeschen").addEventListener("click", async () => {
+  if (!confirm("„" + aktuell.titel + "“ wirklich löschen?")) return;
+  sperren(true);
+  try {
+    uebernehme(await api("loeschen", { liste, id: aktuell.id }));
+    dlg.close();
+    meldung("„" + aktuell.titel + "“ wurde gelöscht.");
+  } catch (err) {
+    el("fehler").textContent = fehlertext(err);
+  } finally {
+    sperren(false);
+  }
+});
+
+form.addEventListener("submit", async e => {
+  e.preventDefault();
+  const weiter = e.submitter && e.submitter.id === "speichern-weiter";
+  const buch = Object.fromEntries(new FormData(form));
+  const name = (buch.titel || "").trim();
+  el("fehler").textContent = "";
+  sperren(true);
+  try {
+    let j, text;
+    if (modus === "neu") {
+      j = await senden("hinzufuegen", { liste, buch }, true);
+      text = "wurde " + (liste === "buecher" ? "zu den Büchern" : "zur Wunschliste") + " hinzugefügt.";
+    } else if (modus === "aendern") {
+      j = await senden("aendern", { liste, id: aktuell.id, buch });
+      text = "wurde gespeichert.";
+    } else {
+      j = await senden("uebernehmen", { id: aktuell.id, buch });
+      text = "ist jetzt im Bücherregal.";
+    }
+    if (!j) return;
+    uebernehme(j);
+    meldung("„" + name + "“ " + text);
+    if (weiter) { form.reset(); vorschlaege(); form.elements.titel.focus(); } else { dlg.close(); }
+  } catch (err) {
+    el("fehler").textContent = fehlertext(err);
+  } finally {
+    sperren(false);
+  }
+});
+
+/* ------------------------------------------------- Excel (nur lokal) ---- */
+const importDlg = el("import-dialog");
+el("excel-import").addEventListener("click", () => {
+  el("datei").value = "";
+  el("import-fehler").textContent = "";
+  importDlg.showModal();
+});
+el("import-abbrechen").addEventListener("click", () => importDlg.close());
+el("import-start").addEventListener("click", async () => {
+  const datei = el("datei").files[0];
+  if (!datei) { el("import-fehler").textContent = "Bitte zuerst eine Excel-Datei auswählen."; return; }
+  el("import-fehler").textContent = "";
+  try {
+    const antwort = await fetch("/api/excel-import", {
+      method: "POST",
+      headers: { "X-Token": LOKAL.token, "Content-Type": "application/octet-stream" },
+      body: datei,
+    });
+    const j = await antwort.json().catch(() => ({}));
+    if (!j.ok) throw new Error(j.fehler || "Import fehlgeschlagen.");
+    uebernehme(j);
+    importDlg.close();
+    meldung(j.neu + " neue Bücher importiert" +
+      (j.uebersprungen ? " (" + j.uebersprungen + " schon vorhanden, übersprungen)." : "."));
+  } catch (err) {
+    el("import-fehler").textContent = fehlertext(err);
+  }
+});
+
+/* ---------------------------------------------------------------- Start - */
+async function start() {
+  if (SNAPSHOT) {
+    BUECHER = SNAPSHOT.buecher;
+    WUENSCHE = SNAPSHOT.wunschliste;
+    el("stand").textContent = "Erstellt am " + SNAPSHOT.stand;
+    modusSetzen();
+    aktualisieren();
+    return;
+  }
+  if (!LOKAL) {
+    code = ls.get("bib_code");
+    try {
+      const cache = JSON.parse(ls.get("bib_cache") || "null");
+      if (cache) { BUECHER = cache.buecher; WUENSCHE = cache.wunschliste; }
+    } catch (e) {}
+  }
+  modusSetzen();
+  aktualisieren();
+  if (!LOKAL && !code) { loginOeffnen(); return; }
+  await laden();
+}
+start();
+</script>
+</body>
+</html>
